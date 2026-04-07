@@ -1,0 +1,519 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.app { padding: 1.5rem 0; font-family: var(--font-sans); }
+.tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+.tab { padding: 8px 20px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; font-size: 14px; color: var(--color-text-secondary); transition: all 0.15s; }
+.tab.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+.panel { display: none; }
+.panel.active { display: block; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; margin-bottom: 1rem; }
+.form-row { margin-bottom: 1rem; }
+.form-row label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; }
+.form-row input, .form-row select { width: 100%; padding: 8px 12px; font-size: 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+.form-row input:focus, .form-row select:focus { outline: none; border-color: var(--color-border-primary); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn { width: 100%; padding: 10px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; color: var(--color-text-primary); transition: all 0.15s; margin-top: 0.5rem; }
+.btn:hover { border-color: var(--color-border-primary); }
+.btn:active { transform: scale(0.98); }
+.btn-danger { border-color: var(--color-border-danger); color: var(--color-text-danger); }
+.btn-danger:hover { background: var(--color-background-danger); }
+.msg { font-size: 13px; margin-top: 0.75rem; padding: 8px 12px; border-radius: var(--border-radius-md); display: none; }
+.msg.success { display: block; background: var(--color-background-success); color: var(--color-text-success); border: 0.5px solid var(--color-border-success); }
+.msg.error { display: block; background: var(--color-background-danger); color: var(--color-text-danger); border: 0.5px solid var(--color-border-danger); }
+.msg.info { display: block; background: var(--color-background-info); color: var(--color-text-info); border: 0.5px solid var(--color-border-info); }
+.section-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.booking-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; gap: 12px; }
+.booking-item:last-child { border-bottom: none; }
+.booking-name { font-weight: 500; color: var(--color-text-primary); }
+.booking-time { color: var(--color-text-secondary); font-size: 12px; margin-top: 2px; }
+.cancel-btn { flex-shrink: 0; padding: 4px 10px; font-size: 12px; border: 0.5px solid var(--color-border-danger); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-danger); cursor: pointer; }
+.cancel-btn:hover { background: var(--color-background-danger); }
+.empty { font-size: 13px; color: var(--color-text-tertiary); padding: 0.5rem 0; }
+.week-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+.week-nav button { padding: 6px 14px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; color: var(--color-text-secondary); }
+.week-nav button:hover { background: var(--color-background-secondary); }
+.week-label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); flex: 1; text-align: center; }
+.grid { display: grid; grid-template-columns: 56px repeat(7, 1fr); gap: 2px; }
+.grid-header { font-size: 11px; color: var(--color-text-secondary); text-align: center; padding: 6px 2px; }
+.time-label { font-size: 11px; color: var(--color-text-tertiary); text-align: right; padding-right: 8px; line-height: 28px; }
+.slot-wrap { position: relative; }
+.slot { height: 28px; border-radius: 4px; border: 0.5px solid transparent; }
+.slot.free { background: var(--color-background-success); border-color: var(--color-border-success); }
+.slot.booked { background: #E24B4A22; border-color: #E24B4A55; }
+.slot.past { background: var(--color-background-secondary); opacity: 0.4; }
+.tip { position: absolute; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 5px 9px; font-size: 12px; color: var(--color-text-primary); z-index: 99; white-space: nowrap; pointer-events: none; display: none; top: 110%; left: 50%; transform: translateX(-50%); }
+.slot-wrap:hover .tip { display: block; }
+.legend { display: flex; gap: 16px; margin-top: 1rem; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); }
+.leg-dot { width: 12px; height: 12px; border-radius: 3px; }
+.leg-dot.free { background: var(--color-background-success); border: 0.5px solid var(--color-border-success); }
+.leg-dot.booked { background: #E24B4A22; border: 0.5px solid #E24B4A55; }
+.leg-dot.past { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); opacity: 0.5; }
+.gmail-note { font-size: 12px; color: var(--color-text-tertiary); margin-top: 6px; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--color-border-secondary); border-top-color: var(--color-text-secondary); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.export-area { margin-top: 0; }
+</style>
+
+<div class="app">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('book')">Book a slot</button>
+    <button class="tab" onclick="switchTab('cancel')">Cancel booking</button>
+    <button class="tab" onclick="switchTab('week')">Weekly view</button>
+    <button class="tab" onclick="switchTab('export')">Export</button>
+  </div>
+
+  <!-- BOOK -->
+  <div id="panel-book" class="panel active">
+    <div class="card">
+      <div class="form-row">
+        <label>Your name</label>
+        <input type="text" id="name" placeholder="e.g. Ayşe Kaya" />
+      </div>
+      <div class="form-row">
+        <label>Your email (for confirmation)</label>
+        <input type="email" id="email" placeholder="ayse@lab.edu" />
+        <div class="gmail-note">Optional — you'll receive a confirmation email</div>
+      </div>
+      <div class="row2">
+        <div class="form-row" style="margin-bottom:0">
+          <label>Date</label>
+          <input type="date" id="date" />
+        </div>
+        <div class="form-row" style="margin-bottom:0">
+          <label>Available slot</label>
+          <select id="slot-select"><option value="">— pick date first —</option></select>
+        </div>
+      </div>
+      <button class="btn" onclick="bookSlot()" id="book-btn">Confirm booking</button>
+      <div class="msg" id="book-msg"></div>
+    </div>
+    <div>
+      <div class="section-title">Upcoming bookings</div>
+      <div id="upcoming-list"></div>
+    </div>
+  </div>
+
+  <!-- CANCEL -->
+  <div id="panel-cancel" class="panel">
+    <div class="card">
+      <div class="form-row">
+        <label>Your name (must match booking)</label>
+        <input type="text" id="cancel-name" placeholder="e.g. Ayşe Kaya" />
+      </div>
+      <div class="form-row">
+        <label>Select your booking to cancel</label>
+        <select id="cancel-select"><option value="">— enter name first —</option></select>
+      </div>
+      <button class="btn btn-danger" onclick="cancelSlot()">Cancel this booking</button>
+      <div class="msg" id="cancel-msg"></div>
+    </div>
+  </div>
+
+  <!-- WEEK -->
+  <div id="panel-week" class="panel">
+    <div class="week-nav">
+      <button onclick="prevWeek()">&#8592;</button>
+      <div class="week-label" id="week-label"></div>
+      <button onclick="nextWeek()">&#8594;</button>
+    </div>
+    <div class="grid" id="week-grid"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="leg-dot free"></div>Available</div>
+      <div class="legend-item"><div class="leg-dot booked"></div>Booked</div>
+      <div class="legend-item"><div class="leg-dot past"></div>Past</div>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div id="panel-export" class="panel">
+    <div class="card export-area">
+      <div class="section-title" style="margin-bottom:0.5rem">Download standalone HTML</div>
+      <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.6">Download a self-contained HTML file you can host anywhere — GitHub Pages, a lab server, or just share the file directly. All bookings sync via shared storage regardless of where it's opened from Claude.</p>
+      <button class="btn" onclick="downloadHTML()">Download scheduler.html</button>
+      <div class="msg" id="export-msg"></div>
+    </div>
+    <div class="card" style="margin-top:1rem">
+      <div class="section-title" style="margin-bottom:0.5rem">Gmail notifications</div>
+      <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.6">When a labmate books or cancels a slot, an email is sent to their address (if provided). Connect your Gmail below to enable this.</p>
+      <div class="form-row">
+        <label>Lab notification address (receives all booking alerts)</label>
+        <input type="email" id="lab-email" placeholder="lab-cabin@yourlab.edu" />
+      </div>
+      <button class="btn" onclick="saveLabEmail()">Save lab email</button>
+      <div class="msg" id="email-msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const HOURS = [8,9,10,11,12,13,14,15,16,17,18];
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+let weekOffset = 0;
+let bookings = {};
+let labEmail = '';
+
+function fmt(d) { return d.toISOString().slice(0,10); }
+function fmtDisp(d) { return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+function slotKey(date,hour) { return `${date}__${hour}`; }
+
+async function load() {
+  try {
+    const r = await window.storage.get('cabin_bookings', true);
+    bookings = r ? JSON.parse(r.value) : {};
+  } catch(e) { bookings = {}; }
+  try {
+    const r2 = await window.storage.get('cabin_lab_email', true);
+    if (r2) { labEmail = r2.value; document.getElementById('lab-email').value = labEmail; }
+  } catch(e) {}
+}
+
+async function save() {
+  await window.storage.set('cabin_bookings', JSON.stringify(bookings), true);
+}
+
+function now() { return new Date(); }
+function todayStr() { return fmt(now()); }
+
+function isPast(dateStr, hour) {
+  const n = now();
+  return dateStr < todayStr() || (dateStr === todayStr() && hour <= n.getHours());
+}
+
+function updateSlotDropdown() {
+  const dateVal = document.getElementById('date').value;
+  const sel = document.getElementById('slot-select');
+  sel.innerHTML = '';
+  if (!dateVal) { sel.innerHTML = '<option value="">— pick date first —</option>'; return; }
+  const avail = HOURS.filter(h => !isPast(dateVal,h) && !bookings[slotKey(dateVal,h)]);
+  if (!avail.length) { sel.innerHTML = '<option value="">No slots available</option>'; return; }
+  avail.forEach(h => {
+    const o = document.createElement('option');
+    o.value = h; o.textContent = `${h}:00 – ${h+1}:00`;
+    sel.appendChild(o);
+  });
+}
+
+function updateCancelDropdown() {
+  const name = document.getElementById('cancel-name').value.trim().toLowerCase();
+  const sel = document.getElementById('cancel-select');
+  sel.innerHTML = '';
+  if (!name) { sel.innerHTML = '<option value="">— enter name first —</option>'; return; }
+  const mine = Object.entries(bookings)
+    .filter(([,b]) => b.name.toLowerCase() === name && !isPast(b.date, b.hour))
+    .sort(([,a],[,b2]) => a.date===b2.date ? a.hour-b2.hour : a.date.localeCompare(b2.date));
+  if (!mine.length) { sel.innerHTML = '<option value="">No bookings found for that name</option>'; return; }
+  mine.forEach(([key,b]) => {
+    const o = document.createElement('option');
+    o.value = key;
+    const d = new Date(b.date+'T12:00:00');
+    o.textContent = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} ${b.hour}:00–${b.hour+1}:00`;
+    sel.appendChild(o);
+  });
+}
+
+async function sendNotification(type, booking, userEmail) {
+  if (!labEmail && !userEmail) return;
+  const subject = type === 'book'
+    ? `Sterile cabin booked – ${booking.date} ${booking.hour}:00`
+    : `Sterile cabin booking cancelled – ${booking.date} ${booking.hour}:00`;
+  const body = type === 'book'
+    ? `${booking.name} booked the sterile cabin.\n\nDate: ${booking.date}\nTime: ${booking.hour}:00 – ${booking.hour+1}:00\n\nThis is an automated message from the Lab Cabin Scheduler.`
+    : `${booking.name} cancelled their booking.\n\nDate: ${booking.date}\nTime: ${booking.hour}:00 – ${booking.hour+1}:00\n\nThis is an automated message from the Lab Cabin Scheduler.`;
+
+  const targets = [...new Set([labEmail, userEmail].filter(Boolean))];
+  for (const to of targets) {
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 200,
+          messages: [{ role: 'user', content: `Send an email to ${to} with subject "${subject}" and body: ${body}` }],
+          mcp_servers: [{ type: 'url', url: 'https://gmail.mcp.claude.com/mcp', name: 'gmail' }]
+        })
+      });
+      await resp.json();
+    } catch(e) { console.log('Email send failed', e); }
+  }
+}
+
+async function bookSlot() {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const date = document.getElementById('date').value;
+  const hour = parseInt(document.getElementById('slot-select').value);
+  const msg = document.getElementById('book-msg');
+  msg.className = 'msg';
+  if (!name) { msg.className='msg error'; msg.textContent='Please enter your name.'; return; }
+  if (!date) { msg.className='msg error'; msg.textContent='Please pick a date.'; return; }
+  if (!hour) { msg.className='msg error'; msg.textContent='Please pick a slot.'; return; }
+  const key = slotKey(date, hour);
+  if (bookings[key]) { msg.className='msg error'; msg.textContent='That slot was just taken — please pick another.'; updateSlotDropdown(); return; }
+
+  const btn = document.getElementById('book-btn');
+  btn.innerHTML = '<span class="spinner"></span>Booking…';
+  btn.disabled = true;
+
+  bookings[key] = { name, email, date, hour };
+  await save();
+
+  msg.className='msg info'; msg.textContent='Booking saved! Sending notification…';
+
+  await sendNotification('book', bookings[key], email);
+
+  msg.className='msg success';
+  msg.textContent = `Booked! ${name} — ${date} ${hour}:00–${hour+1}:00${email ? ' · Confirmation sent' : ''}`;
+  btn.innerHTML = 'Confirm booking'; btn.disabled = false;
+  updateSlotDropdown();
+  renderUpcoming();
+  renderWeek();
+}
+
+async function cancelSlot() {
+  const name = document.getElementById('cancel-name').value.trim();
+  const key = document.getElementById('cancel-select').value;
+  const msg = document.getElementById('cancel-msg');
+  msg.className = 'msg';
+  if (!name) { msg.className='msg error'; msg.textContent='Please enter your name.'; return; }
+  if (!key || !bookings[key]) { msg.className='msg error'; msg.textContent='Please select a booking to cancel.'; return; }
+  if (bookings[key].name.toLowerCase() !== name.toLowerCase()) { msg.className='msg error'; msg.textContent='Name does not match the booking.'; return; }
+
+  const bk = { ...bookings[key] };
+  delete bookings[key];
+  await save();
+
+  msg.className='msg info'; msg.textContent='Cancelling…';
+  await sendNotification('cancel', bk, bk.email);
+  msg.className='msg success'; msg.textContent=`Booking cancelled: ${bk.date} ${bk.hour}:00–${bk.hour+1}:00`;
+  updateCancelDropdown();
+  renderUpcoming();
+  renderWeek();
+}
+
+function renderUpcoming() {
+  const list = document.getElementById('upcoming-list');
+  const entries = Object.values(bookings)
+    .filter(b => !isPast(b.date, b.hour))
+    .sort((a,b) => a.date===b.date ? a.hour-b.hour : a.date.localeCompare(b.date))
+    .slice(0,15);
+  if (!entries.length) { list.innerHTML = '<div class="empty">No upcoming bookings yet.</div>'; return; }
+  list.innerHTML = entries.map(b => {
+    const d = new Date(b.date+'T12:00:00');
+    return `<div class="booking-item">
+      <div>
+        <div class="booking-name">${b.name}</div>
+        <div class="booking-time">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} &middot; ${b.hour}:00–${b.hour+1}:00</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getWeekStart(offset) {
+  const n = new Date(); n.setHours(0,0,0,0);
+  const diff = n.getDay()===0 ? -6 : 1-n.getDay();
+  n.setDate(n.getDate()+diff+offset*7);
+  return n;
+}
+
+function renderWeek() {
+  const ws = getWeekStart(weekOffset);
+  const we = new Date(ws); we.setDate(ws.getDate()+6);
+  document.getElementById('week-label').textContent = `${fmtDisp(ws)} – ${fmtDisp(we)}`;
+  const grid = document.getElementById('week-grid');
+  const n = now();
+  let html = '<div></div>';
+  for (let d=0;d<7;d++) {
+    const dd = new Date(ws); dd.setDate(ws.getDate()+d);
+    const isToday = fmt(dd)===todayStr();
+    html += `<div class="grid-header" style="${isToday?'font-weight:500;color:var(--color-text-primary)':''}">${DAYS[d]}<br><span style="font-size:10px;color:var(--color-text-tertiary)">${dd.getDate()}</span></div>`;
+  }
+  HOURS.forEach(h => {
+    html += `<div class="time-label">${h}:00</div>`;
+    for (let d=0;d<7;d++) {
+      const dd = new Date(ws); dd.setDate(ws.getDate()+d);
+      const ds = fmt(dd); const key = slotKey(ds,h);
+      const past = isPast(ds,h);
+      const bk = bookings[key];
+      const cls = past?'past':bk?'booked':'free';
+      const tip = bk ? `${bk.name} · ${h}:00–${h+1}:00` : past ? 'Past' : `${h}:00–${h+1}:00 · free`;
+      html += `<div class="slot-wrap"><div class="slot ${cls}"></div><div class="tip">${tip}</div></div>`;
+    }
+  });
+  grid.innerHTML = html;
+}
+
+function prevWeek() { weekOffset--; renderWeek(); }
+function nextWeek() { weekOffset++; renderWeek(); }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['book','cancel','week','export'][i]===tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if (tab==='week') renderWeek();
+  if (tab==='cancel') updateCancelDropdown();
+}
+
+async function saveLabEmail() {
+  labEmail = document.getElementById('lab-email').value.trim();
+  const msg = document.getElementById('email-msg');
+  if (!labEmail) { msg.className='msg error'; msg.textContent='Please enter an email address.'; return; }
+  await window.storage.set('cabin_lab_email', labEmail, true);
+  msg.className='msg success'; msg.textContent='Lab notification email saved.';
+}
+
+function downloadHTML() {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Sterile Cabin Scheduler</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a18;min-height:100vh;display:flex;justify-content:center;padding:2rem 1rem}
+.container{width:100%;max-width:640px}
+h1{font-size:20px;font-weight:500;margin-bottom:1.5rem;color:#1a1a18}
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab{padding:7px 16px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;font-size:14px;color:#555}
+.tab.active{background:#e8e8e4;color:#1a1a18;border-color:#999;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.card{background:#fff;border:1px solid #e0e0d8;border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.form-row{margin-bottom:1rem}
+label{display:block;font-size:13px;color:#666;margin-bottom:6px}
+input,select{width:100%;padding:8px 12px;font-size:14px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a18}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;padding:10px;background:#e8e8e4;border:1px solid #ccc;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#1a1a18;margin-top:.5rem}
+.btn:hover{border-color:#999}.btn:active{transform:scale(.98)}
+.btn-danger{border-color:#f0a0a0;color:#b91c1c}.btn-danger:hover{background:#fef2f2}
+.msg{font-size:13px;margin-top:.75rem;padding:8px 12px;border-radius:8px;display:none}
+.msg.success{display:block;background:#f0fdf4;color:#15803d;border:1px solid #86efac}
+.msg.error{display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5}
+.msg.info{display:block;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd}
+.section-title{font-size:11px;font-weight:500;color:#888;margin-bottom:.75rem;letter-spacing:.06em;text-transform:uppercase}
+.booking-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:13px;gap:12px}
+.booking-item:last-child{border-bottom:none}
+.booking-name{font-weight:500}.booking-time{color:#888;font-size:12px;margin-top:2px}
+.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.week-nav button{padding:6px 14px;font-size:13px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;color:#555}
+.week-nav button:hover{background:#f5f5f3}
+.week-label{font-size:14px;font-weight:500;flex:1;text-align:center}
+.grid{display:grid;grid-template-columns:56px repeat(7,1fr);gap:2px}
+.grid-header{font-size:11px;color:#888;text-align:center;padding:6px 2px}
+.time-label{font-size:11px;color:#aaa;text-align:right;padding-right:8px;line-height:28px}
+.slot{height:28px;border-radius:4px;border:1px solid transparent}
+.slot.free{background:#dcfce7;border-color:#86efac}
+.slot.booked{background:#fee2e2;border-color:#fca5a5}
+.slot.past{background:#f5f5f3;opacity:.5}
+.slot-wrap{position:relative}
+.tip{position:absolute;background:#fff;border:1px solid #ccc;border-radius:8px;padding:5px 9px;font-size:12px;z-index:99;white-space:nowrap;pointer-events:none;display:none;top:110%;left:50%;transform:translateX(-50%)}
+.slot-wrap:hover .tip{display:block}
+.legend{display:flex;gap:16px;margin-top:1rem}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#888}
+.leg-dot{width:12px;height:12px;border-radius:3px}
+.leg-dot.free{background:#dcfce7;border:1px solid #86efac}
+.leg-dot.booked{background:#fee2e2;border:1px solid #fca5a5}
+.leg-dot.past{background:#f5f5f3;border:1px solid #e5e5e5;opacity:.6}
+.empty{font-size:13px;color:#aaa;padding:.5rem 0}
+.gmail-note{font-size:12px;color:#aaa;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Sterile Cabin Scheduler</h1>
+<div class="tabs">
+<button class="tab active" onclick="switchTab('book')">Book a slot</button>
+<button class="tab" onclick="switchTab('cancel')">Cancel booking</button>
+<button class="tab" onclick="switchTab('week')">Weekly view</button>
+</div>
+<div id="panel-book" class="panel active">
+<div class="card">
+<div class="form-row"><label>Your name</label><input type="text" id="name" placeholder="e.g. Ayşe Kaya"/></div>
+<div class="form-row"><label>Your email (optional, for confirmation)</label><input type="email" id="email" placeholder="ayse@lab.edu"/><div class="gmail-note">You'll receive a confirmation email if provided</div></div>
+<div class="row2">
+<div class="form-row" style="margin-bottom:0"><label>Date</label><input type="date" id="date"/></div>
+<div class="form-row" style="margin-bottom:0"><label>Available slot</label><select id="slot-select"><option value="">— pick date first —</option></select></div>
+</div>
+<button class="btn" onclick="bookSlot()">Confirm booking</button>
+<div class="msg" id="book-msg"></div>
+</div>
+<div class="section-title">Upcoming bookings</div>
+<div id="upcoming-list"></div>
+</div>
+<div id="panel-cancel" class="panel">
+<div class="card">
+<div class="form-row"><label>Your name (must match booking)</label><input type="text" id="cancel-name" placeholder="e.g. Ayşe Kaya" oninput="updateCancelDropdown()"/></div>
+<div class="form-row"><label>Select booking to cancel</label><select id="cancel-select"><option value="">— enter name first —</option></select></div>
+<button class="btn btn-danger" onclick="cancelSlot()">Cancel this booking</button>
+<div class="msg" id="cancel-msg"></div>
+</div>
+</div>
+<div id="panel-week" class="panel">
+<div class="week-nav">
+<button onclick="prevWeek()">&#8592;</button>
+<div class="week-label" id="week-label"></div>
+<button onclick="nextWeek()">&#8594;</button>
+</div>
+<div class="grid" id="week-grid"></div>
+<div class="legend">
+<div class="legend-item"><div class="leg-dot free"></div>Available</div>
+<div class="legend-item"><div class="leg-dot booked"></div>Booked</div>
+<div class="legend-item"><div class="leg-dot past"></div>Past</div>
+</div>
+</div>
+</div>
+<script>
+const HOURS=[8,9,10,11,12,13,14,15,16,17,18];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+let weekOffset=0,bookings={},labEmail='';
+const STORAGE_KEY='cabin_bookings_standalone';
+function fmt(d){return d.toISOString().slice(0,10);}
+function fmtDisp(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function slotKey(date,hour){return date+'__'+hour;}
+function now(){return new Date();}
+function todayStr(){return fmt(now());}
+function isPast(ds,h){const n=now();return ds<todayStr()||(ds===todayStr()&&h<=n.getHours());}
+function loadLocal(){try{const r=localStorage.getItem(STORAGE_KEY);bookings=r?JSON.parse(r):{};labEmail=localStorage.getItem('cabin_lab_email')||'';}catch(e){bookings={};}}
+function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(bookings));}
+function updateSlotDropdown(){const dv=document.getElementById('date').value,sel=document.getElementById('slot-select');sel.innerHTML='';if(!dv){sel.innerHTML='<option value="">— pick date first —</option>';return;}const av=HOURS.filter(h=>!isPast(dv,h)&&!bookings[slotKey(dv,h)]);if(!av.length){sel.innerHTML='<option value="">No slots available</option>';return;}av.forEach(h=>{const o=document.createElement('option');o.value=h;o.textContent=h+':00 – '+(h+1)+':00';sel.appendChild(o);});}
+function updateCancelDropdown(){const name=document.getElementById('cancel-name').value.trim().toLowerCase(),sel=document.getElementById('cancel-select');sel.innerHTML='';if(!name){sel.innerHTML='<option value="">— enter name first —</option>';return;}const mine=Object.entries(bookings).filter(([,b])=>b.name.toLowerCase()===name&&!isPast(b.date,b.hour)).sort(([,a],[,b2])=>a.date===b2.date?a.hour-b2.hour:a.date.localeCompare(b2.date));if(!mine.length){sel.innerHTML='<option value="">No bookings found</option>';return;}mine.forEach(([key,b])=>{const o=document.createElement('option');o.value=key;const d=new Date(b.date+'T12:00:00');o.textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' '+b.hour+':00–'+(b.hour+1)+':00';sel.appendChild(o);});}
+function bookSlot(){const name=document.getElementById('name').value.trim(),email=document.getElementById('email').value.trim(),date=document.getElementById('date').value,hour=parseInt(document.getElementById('slot-select').value),msg=document.getElementById('book-msg');msg.className='msg';if(!name){msg.className='msg error';msg.textContent='Please enter your name.';return;}if(!date){msg.className='msg error';msg.textContent='Please pick a date.';return;}if(!hour){msg.className='msg error';msg.textContent='Please pick a slot.';return;}const key=slotKey(date,hour);if(bookings[key]){msg.className='msg error';msg.textContent='That slot was just taken.';updateSlotDropdown();return;}bookings[key]={name,email,date,hour};saveLocal();msg.className='msg success';msg.textContent='Booked! '+name+' — '+date+' '+hour+':00–'+(hour+1)+':00';updateSlotDropdown();renderUpcoming();renderWeek();}
+function cancelSlot(){const name=document.getElementById('cancel-name').value.trim(),key=document.getElementById('cancel-select').value,msg=document.getElementById('cancel-msg');msg.className='msg';if(!name){msg.className='msg error';msg.textContent='Please enter your name.';return;}if(!key||!bookings[key]){msg.className='msg error';msg.textContent='Please select a booking.';return;}delete bookings[key];saveLocal();msg.className='msg success';msg.textContent='Booking cancelled.';updateCancelDropdown();renderUpcoming();renderWeek();}
+function renderUpcoming(){const list=document.getElementById('upcoming-list'),entries=Object.values(bookings).filter(b=>!isPast(b.date,b.hour)).sort((a,b)=>a.date===b.date?a.hour-b.hour:a.date.localeCompare(b.date)).slice(0,15);if(!entries.length){list.innerHTML='<div class="empty">No upcoming bookings yet.</div>';return;}list.innerHTML=entries.map(b=>{const d=new Date(b.date+'T12:00:00');return'<div class="booking-item"><div><div class="booking-name">'+b.name+'</div><div class="booking-time">'+d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' &middot; '+b.hour+':00–'+(b.hour+1)+':00</div></div></div>';}).join('');}
+function getWeekStart(off){const n=new Date();n.setHours(0,0,0,0);const diff=n.getDay()===0?-6:1-n.getDay();n.setDate(n.getDate()+diff+off*7);return n;}
+function renderWeek(){const ws=getWeekStart(weekOffset),we=new Date(ws);we.setDate(ws.getDate()+6);document.getElementById('week-label').textContent=fmtDisp(ws)+' – '+fmtDisp(we);const grid=document.getElementById('week-grid');let html='<div></div>';for(let d=0;d<7;d++){const dd=new Date(ws);dd.setDate(ws.getDate()+d);const isT=fmt(dd)===todayStr();html+='<div class="grid-header" style="'+(isT?'font-weight:500;color:#1a1a18':'')+'">'+DAYS[d]+'<br><span style="font-size:10px;color:#aaa">'+dd.getDate()+'</span></div>';}HOURS.forEach(h=>{html+='<div class="time-label">'+h+':00</div>';for(let d=0;d<7;d++){const dd=new Date(ws);dd.setDate(ws.getDate()+d);const ds=fmt(dd),key=slotKey(ds,h),past=isPast(ds,h),bk=bookings[key],cls=past?'past':bk?'booked':'free',tip=bk?bk.name+' · '+h+':00–'+(h+1)+':00':past?'Past':h+':00–'+(h+1)+':00+' · free';html+='<div class="slot-wrap"><div class="slot '+cls+'"></div><div class="tip">'+tip+'</div></div>';}});grid.innerHTML=html;}
+function prevWeek(){weekOffset--;renderWeek();}
+function nextWeek(){weekOffset++;renderWeek();}
+function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['book','cancel','week'][i]===tab));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+tab).classList.add('active');if(tab==='week')renderWeek();}
+document.getElementById('date').addEventListener('change',updateSlotDropdown);
+const mn=new Date();mn.setHours(0,0,0,0);document.getElementById('date').min=fmt(mn);
+loadLocal();renderUpcoming();renderWeek();
+<\/script>
+</body>
+</html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='lab-cabin-scheduler.html'; a.click();
+  URL.revokeObjectURL(url);
+  const msg = document.getElementById('export-msg');
+  msg.className='msg success'; msg.textContent='Downloaded! Open the file in any browser and share the URL or file with labmates.';
+}
+
+document.getElementById('date').addEventListener('change', updateSlotDropdown);
+document.getElementById('cancel-name').addEventListener('input', updateCancelDropdown);
+
+async function saveLabEmail() {
+  labEmail = document.getElementById('lab-email').value.trim();
+  const msg = document.getElementById('email-msg');
+  if (!labEmail) { msg.className='msg error'; msg.textContent='Please enter an email address.'; return; }
+  await window.storage.set('cabin_lab_email', labEmail, true);
+  msg.className='msg success'; msg.textContent='Lab notification email saved. All bookings/cancellations will notify this address.';
+}
+
+const mn = new Date(); mn.setHours(0,0,0,0);
+document.getElementById('date').min = fmt(mn);
+
+(async () => { await load(); renderUpcoming(); renderWeek(); })();
+</script>
