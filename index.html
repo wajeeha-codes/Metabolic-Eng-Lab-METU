@@ -324,7 +324,7 @@ let db, bks = {}, wo = 0, unsubscribe = null;
 const IS_CONFIGURED = !FIREBASE_CONFIG.apiKey.startsWith("FIREBASE");
 
 // hide setup banner if configured
-if (IS_CONFIGURED) document.getElementById('cfg-banner').style.display = 'none';
+const _b=document.getElementById('cfg-banner'); if(_b && IS_CONFIGURED) _b.style.display='none';
 
 function fmt(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
 function parseDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
@@ -541,9 +541,9 @@ function renderWeek(){
   HOURS.forEach(h=>{
     html+=`<div class="tl">${h}</div>`;
     for(let d=0;d<7;d++){
-      const ds=addDays(monStr,d),key=sk(ds,h),past=isPast(ds,h),bk=bks[key];
-      const cls=past?'past':bk?'booked':'free';
-      const tip=bk?`${bk.name} \u00b7 ${h}:00\u2013${h+1}:00`:past?'past':`${h}:00\u2013${h+1}:00`;
+      const ds=addDays(monStr,d),key=sk(ds,h),bk=bks[key];
+      const cls=bk?'booked':'free';
+      const tip=bk?`${bk.name} · ${h}:00–${h+1}:00`:`${h}:00–${h+1}:00`;
       html+=`<div class="sw"><div class="sl ${cls}"></div><div class="tt">${tip}</div></div>`;
     }
   });
